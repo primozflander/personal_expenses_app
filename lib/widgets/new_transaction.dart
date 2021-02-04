@@ -17,6 +17,28 @@ class NewTransaction extends StatefulWidget {
 }
 
 class _NewTransactionState extends State<NewTransaction> {
+  _NewTransactionState() {
+    print('Constructor Newtransaction State');
+  }
+
+  @override
+  void initState() {
+    print('initState');
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    print('dispose');
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant NewTransaction oldWidget) {
+    print('DidUpdateWidget');
+    super.didUpdateWidget(oldWidget);
+  }
+
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime _selectedDate = DateTime.now();

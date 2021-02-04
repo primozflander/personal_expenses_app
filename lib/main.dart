@@ -57,9 +57,8 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   bool _showChart = false;
-
   final List<Transaction> _userTransactions = [
     // Transaction(
     //   id: 't1',
@@ -74,6 +73,21 @@ class _MyHomePageState extends State<MyHomePage> {
     //   date: DateTime.now(),
     // )
   ];
+
+  void didChangeAppLifeCycleState(AppLifecycleState state) {
+    print(state);
+  }
+
+  @override
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
 
   List<Transaction> get _recentTransactions {
     return _userTransactions.where(
@@ -122,6 +136,58 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  List<Widget> _buildLandscapeContent(
+      MediaQueryData mediaQuery, AppBar appBar, Widget transactionListWidget) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Show Chart',
+            style: Theme.of(context).textTheme.headline6,
+          ),
+          Switch.adaptive(
+            activeColor: Theme.of(context).accentColor,
+            value: _showChart,
+            onChanged: (val) {
+              setState(
+                () {
+                  _showChart = val;
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      _showChart
+          ? Container(
+              height: (mediaQuery.size.height -
+                      appBar.preferredSize.height -
+                      mediaQuery.padding.top) *
+                  0.7,
+              child: Chart(_recentTransactions),
+            )
+          : transactionListWidget
+    ];
+  }
+
+  List<Widget> _buildPortraitContent(
+    MediaQueryData mediaQuery,
+    AppBar appBar,
+    Widget transactionListWidget,
+  ) {
+    return [
+      Container(
+        height: (mediaQuery.size.height -
+                appBar.preferredSize.height -
+                mediaQuery.padding.top) *
+            0.3,
+        child: Chart(_recentTransactions),
+      ),
+      transactionListWidget
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -165,45 +231,14 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (isLandscape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Show Chart',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  Switch.adaptive(
-                    activeColor: Theme.of(context).accentColor,
-                    value: _showChart,
-                    onChanged: (val) {
-                      setState(
-                        () {
-                          _showChart = val;
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
+              ..._buildLandscapeContent(
+                  mediaQuery, appBar, transactionListWidget),
             if (!isLandscape)
-              Container(
-                height: (mediaQuery.size.height -
-                        appBar.preferredSize.height -
-                        mediaQuery.padding.top) *
-                    0.3,
-                child: Chart(_recentTransactions),
+              ..._buildPortraitContent(
+                mediaQuery,
+                appBar,
+                transactionListWidget,
               ),
-            if (!isLandscape) transactionListWidget,
-            if (isLandscape)
-              _showChart
-                  ? Container(
-                      height: (mediaQuery.size.height -
-                              appBar.preferredSize.height -
-                              mediaQuery.padding.top) *
-                          0.7,
-                      child: Chart(_recentTransactions),
-                    )
-                  : transactionListWidget
           ],
         ),
       ),
